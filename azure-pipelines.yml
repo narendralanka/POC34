@@ -26,7 +26,7 @@ stages:
         command: buildAndPush
         containerRegistry: 'ACR-SERVICE-CONNECTION'
         repository: '$(imageName)'
-        Dockerfile: 'Dockerfile'
+        dockerfile: 'Dockerfile'
         tags: |
           $(tag)
           latest
@@ -42,3 +42,9 @@ stages:
     - task: AzureContainerApps@1
       displayName: Deploy image to Container App
       inputs:
+        azureSubscription: 'AZURE-RM-SERVICE-CONNECTION'
+        acrName: '$(acrName)'
+        resourceGroup: '$(resourceGroup)'
+        containerAppName: '$(containerAppName)'
+        imageToDeploy: '$(acrLoginServer)/$(imageName):$(tag)'
+        targetPort: '8080'
