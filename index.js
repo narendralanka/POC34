@@ -7,4 +7,3 @@ app.get("/", (req, res) => res.send("✅ POC34 running on Azure Web App for Cont
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
-``
