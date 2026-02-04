@@ -1,0 +1,51 @@
+trigger:
+- main
+
+variables:
+  # --- CHANGE THESE 4 VALUES ---
+  acrName: 'CHANGE_ME_ACR_NAME'                 # Example: poc34acr123
+  acrLoginServer: 'CHANGE_ME_ACR_LOGIN_SERVER' # Example: poc34acr123.azurecr.io
+  containerAppName: 'CHANGE_ME_CONTAINER_APP'  # Example: poc34-app
+  resourceGroup: 'CHANGE_ME_RG'                # Example: poc34-rg
+
+  # image repo inside ACR
+  imageName: 'poc34-webapp'
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: BuildAndPush
+  displayName: Build & Push to ACR
+  jobs:
+  - job: BuildPush
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+
+    - task: Docker@2
+      displayName: Build and push image to ACR
+      inputs:
+        command: buildAndPush
+        containerRegistry: 'ACR-SERVICE-CONNECTION'
+        repository: $(imageName)
+        dockerfile: Dockerfile
+        tags: |
+          $(tag)
+          latest
+
+- stage: Deploy
+  displayName: Deploy to Azure Container App
+  dependsOn: BuildAndPush
+  jobs:
+  - job: DeployJob
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: AzureContainerApps@1
+      displayName: Deploy image to Container App
+      inputs:
+        azureSubscription: 'AZURE-RM-SERVICE-CONNECTION'
+        acrName: $(acrName)
+        resourceGroup: $(resourceGroup)
+        containerAppName: $(containerAppName)
+        imageToDeploy: $(acrLoginServer)/$(imageName):$(tag)
